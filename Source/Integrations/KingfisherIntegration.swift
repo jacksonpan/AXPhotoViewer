@@ -85,8 +85,13 @@ class KingfisherIntegration: NSObject, AXNetworkIntegrationProtocol {
                 }
             }
         }
-
-        let task = KingfisherManager.shared.retrieveImage(with: url, options: nil, progressBlock: progress, completionHandler: completion)
+        
+        let options: KingfisherOptionsInfo? = nil
+        let extra = photo.extra
+        if extra {
+            options = extra["options"] as! KingfisherOptionsInfo
+        }
+        let task = KingfisherManager.shared.retrieveImage(with: url, options: options, progressBlock: progress, completionHandler: completion)
         self.retrieveImageTasks.setObject(task, forKey: photo)
     }
 

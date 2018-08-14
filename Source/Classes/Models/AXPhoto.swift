@@ -14,7 +14,8 @@
                       attributedCredit: NSAttributedString? = nil,
                       imageData: Data? = nil,
                       image: UIImage? = nil,
-                      url: URL? = nil) {
+                      url: URL? = nil,
+                      extra: Dictionary<String, Any>?=nil) {
         
         self.attributedTitle = attributedTitle
         self.attributedDescription = attributedDescription
@@ -22,6 +23,7 @@
         self.imageData = imageData
         self.image = image
         self.url = url
+        self.extra = extra
         
         super.init()
     }
@@ -45,4 +47,6 @@
     /// The URL of the image. If present, this value will be passed to a `NetworkIntegration` to be downloaded.
     @objc public var url: URL?
     
+    /// The extra info to add, example for Kingfisher
+    @objc public var extra: Dictionary<String, Any>?
 }

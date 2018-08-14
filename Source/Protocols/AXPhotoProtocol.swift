@@ -27,4 +27,6 @@
     /// The URL of the image.
     @objc var url: URL? { get }
     
+    /// The extra info to add, example for Kingfisher
+    @objc var extra: Dictionary<String, Any>? { get }
 }
