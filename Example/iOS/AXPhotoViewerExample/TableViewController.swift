@@ -22,12 +22,43 @@ class TableViewController: UITableViewController, AXPhotosViewControllerDelegate
     weak var customView: UILabel?
     
     let photos = [
-        AXPhoto(attributedTitle: NSAttributedString(string: "Niagara Falls"),
-                image: UIImage(named: "niagara-falls")),
-        AXPhoto(attributedTitle: NSAttributedString(string: "The Flash Poster"),
-              attributedDescription: NSAttributedString(string: "Season 3"),
-              attributedCredit: NSAttributedString(string: "Vignette"),
-              url: URL(string: "https://goo.gl/T4oZdY")),
+        AXPhoto(attributedTitle: NSAttributedString(
+                string: "Niagara Falls"),
+                image: UIImage(named: "niagara-falls"
+            )
+        ),
+        AXPhoto(
+            attributedTitle: NSAttributedString(
+                string: "The Flash Poster",
+                attributes:[
+                    .font: UIFont.italicSystemFont(ofSize: 24),
+                    .paragraphStyle: {
+                        let style = NSMutableParagraphStyle()
+                        style.alignment = .right
+                        return style
+                    }()
+                ]
+            ),
+            attributedDescription: NSAttributedString(
+                string: "Season 3",
+                attributes:[
+                    .paragraphStyle: {
+                        let style = NSMutableParagraphStyle()
+                        style.alignment = .right
+                        return style
+                    }()
+                ]),
+            attributedCredit: NSAttributedString(
+                string: "Vignette",
+                attributes:[
+                    .paragraphStyle: {
+                        let style = NSMutableParagraphStyle()
+                        style.alignment = .right
+                        return style
+                    }()
+                ]
+            ),
+            url: URL(string: "https://goo.gl/T4oZudY")),
         AXPhoto(attributedTitle: NSAttributedString(string: "Tall Building"),
               attributedDescription: NSAttributedString(string: "... And subsequently tall image"),
               attributedCredit: NSAttributedString(string: "Wikipedia"),
@@ -45,6 +76,10 @@ class TableViewController: UITableViewController, AXPhotosViewControllerDelegate
               attributedCredit: NSAttributedString(string: "Giphy"),
               url: URL(string: "https://media.giphy.com/media/lXiRDbPcRYfUgxOak/giphy.gif"))
     ]
+    
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return [.portrait, .landscapeLeft]
@@ -89,9 +124,7 @@ class TableViewController: UITableViewController, AXPhotosViewControllerDelegate
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ReuseIdentifier) else {
-            return UITableViewCell()
-        }
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ReuseIdentifier) else { return UITableViewCell() }
         
         // sample project worst practices top kek
         if cell.contentView.viewWithTag(666) == nil {
@@ -100,7 +133,7 @@ class TableViewController: UITableViewController, AXPhotosViewControllerDelegate
             imageView.autoresizingMask = [.flexibleLeftMargin, .flexibleRightMargin, .flexibleTopMargin, .flexibleBottomMargin]
             imageView.layer.cornerRadius = 20
             imageView.layer.masksToBounds = true
-            imageView.contentMode = UIViewContentMode(rawValue: Int(arc4random_uniform(UInt32(13))))!;
+            imageView.contentMode = UIView.ContentMode(rawValue: Int(arc4random_uniform(UInt32(13))))!;
             cell.contentView.addSubview(imageView)
         }
         
@@ -108,9 +141,7 @@ class TableViewController: UITableViewController, AXPhotosViewControllerDelegate
     }
     
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let imageView = cell.contentView.viewWithTag(666) as? FLAnimatedImageView else {
-            return
-        }
+        guard let imageView = cell.contentView.viewWithTag(666) as? FLAnimatedImageView else { return }
         
         self.cancelLoad(at: indexPath, for: imageView)
         self.loadContent(at: indexPath, into: imageView)
@@ -121,14 +152,10 @@ class TableViewController: UITableViewController, AXPhotosViewControllerDelegate
         let imageView = cell?.contentView.viewWithTag(666) as? FLAnimatedImageView
         
         let transitionInfo = AXTransitionInfo(interactiveDismissalEnabled: true, startingView: imageView) { [weak self] (photo, index) -> UIImageView? in
-            guard let `self` = self else {
-                return nil
-            }
+            guard let `self` = self else { return nil }
             
             let indexPath = IndexPath(row: index, section: 0)
-            guard let cell = self.tableView.cellForRow(at: indexPath) else {
-                return nil
-            }
+            guard let cell = self.tableView.cellForRow(at: indexPath) else { return nil }
             
             // adjusting the reference view attached to our transition info to allow for contextual animation
             return cell.contentView.viewWithTag(666) as? FLAnimatedImageView

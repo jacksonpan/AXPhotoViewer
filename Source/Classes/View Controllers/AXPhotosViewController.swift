@@ -61,7 +61,7 @@ import FLAnimatedImage_tvOS
     @objc open weak var delegate: AXPhotosViewControllerDelegate?
     
     /// The underlying `OverlayView` that is used for displaying photo captions, titles, and actions.
-    @objc open let overlayView = AXOverlayView()
+    @objc public let overlayView = AXOverlayView()
     
     /// The photos to display in the PhotosViewController.
     @objc open var dataSource = AXPhotosDataSource() {
@@ -342,7 +342,7 @@ import FLAnimatedImage_tvOS
         
         self.pageViewController = UIPageViewController(transitionStyle: .scroll,
                                                        navigationOrientation: self.pagingConfig.navigationOrientation,
-                                                       options: [UIPageViewControllerOptionInterPageSpacingKey: self.pagingConfig.interPhotoSpacing])
+                                                       options: [.interPageSpacing: self.pagingConfig.interPhotoSpacing])
         self.pageViewController.delegate = self
         self.pageViewController.dataSource = (self.dataSource.numberOfPhotos > 1) ? self : nil
         self.pageViewController.scrollView.addContentOffsetObserver(self)
@@ -405,9 +405,9 @@ import FLAnimatedImage_tvOS
         if self.pageViewController.view.superview == nil {
             self.pageViewController.view.addGestureRecognizer(self.singleTapGestureRecognizer)
             
-            self.addChildViewController(self.pageViewController)
+            self.addChild(self.pageViewController)
             self.view.addSubview(self.pageViewController.view)
-            self.pageViewController.didMove(toParentViewController: self)
+            self.pageViewController.didMove(toParent: self)
         }
         
         if self.overlayView.superview == nil {
@@ -421,9 +421,7 @@ import FLAnimatedImage_tvOS
         if self.isFirstAppearance {
             let visible: Bool = true
             self.overlayView.setShowInterface(visible, animated: true, alongside: { [weak self] in
-                guard let `self` = self else {
-                    return
-                }
+                guard let `self` = self else { return }
                 
                 #if os(iOS)
                 self.updateStatusBarAppearance(show: visible)
@@ -450,16 +448,13 @@ import FLAnimatedImage_tvOS
         self.overlayView.frame = self.view.bounds
         self.overlayView.performAfterShowInterfaceCompletion { [weak self] in
             // if being dismissed, let's just return early rather than update insets
-            guard let `self` = self, !self.isBeingDismissed else {
-                return
-            }
-            
+            guard let `self` = self, !self.isBeingDismissed else { return }
             self.updateOverlayInsets()
         }
     }
     
-    open override func didMove(toParentViewController parent: UIViewController?) {
-        super.didMove(toParentViewController: parent)
+    open override func didMove(toParent parent: UIViewController?) {
+        super.didMove(toParent: parent)
         
         if parent is UINavigationController {
             assertionFailure("Do not embed `PhotosViewController` in a navigation stack.")
@@ -471,9 +466,7 @@ import FLAnimatedImage_tvOS
 
     // MARK: - PhotosViewControllerTransitionAnimatorDelegate
     func transitionController(_ transitionController: AXPhotosTransitionController, didCompletePresentationWith transitionView: UIImageView) {
-        guard let photo = self.dataSource.photo(at: self.currentPhotoIndex) else {
-            return
-        }
+        guard let photo = self.dataSource.photo(at: self.currentPhotoIndex) else { return }
         
         self.notificationCenter.post(
             name: .photoImageUpdate,
@@ -528,9 +521,7 @@ import FLAnimatedImage_tvOS
             return
         }
         
-        guard let photoViewController = self.makePhotoViewController(for: photoIndex) else {
-            return
-        }
+        guard let photoViewController = self.makePhotoViewController(for: photoIndex) else { return }
         
         let forward = (photoIndex > self.currentPhotoIndex)
         self.pageViewController.setViewControllers([photoViewController],
@@ -538,6 +529,7 @@ import FLAnimatedImage_tvOS
                                                    animated: animated,
                                                    completion: nil)
         self.loadPhotos(at: photoIndex)
+        self.currentPhotoIndex = photoIndex
     }
     
     // MARK: - Page VC Configuration
@@ -562,15 +554,13 @@ import FLAnimatedImage_tvOS
     
     // MARK: - Overlay
     fileprivate func updateOverlay(for photoIndex: Int) {
-        guard let photo = self.dataSource.photo(at: photoIndex) else {
-            return
-        }
+        guard let photo = self.dataSource.photo(at: photoIndex) else { return }
         
         self.willUpdate(overlayView: self.overlayView, for: photo, at: photoIndex, totalNumberOfPhotos: self.dataSource.numberOfPhotos)
         
         #if os(iOS)
         if self.dataSource.numberOfPhotos > 1 {
-            self.overlayView.internalTitle = String.localizedStringWithFormat("%d of %d", photoIndex + 1, self.dataSource.numberOfPhotos)
+            self.overlayView.internalTitle = String.localizedStringWithFormat(NSLocalizedString("%d of %d", comment: ""), photoIndex + 1, self.dataSource.numberOfPhotos)
         } else {
             self.overlayView.internalTitle = nil
         }
@@ -608,9 +598,7 @@ import FLAnimatedImage_tvOS
     @objc fileprivate func didSingleTapWithGestureRecognizer(_ sender: UITapGestureRecognizer) {
         let show = (self.overlayView.alpha == 0)
         self.overlayView.setShowInterface(show, animated: true, alongside: { [weak self] in
-            guard let `self` = self else {
-                return
-            }
+            guard let `self` = self else { return }
             
             #if os(iOS)
             self.updateStatusBarAppearance(show: show)
@@ -644,9 +632,7 @@ import FLAnimatedImage_tvOS
     
     // MARK: - Default bar button actions
     @objc public func shareAction(_ barButtonItem: UIBarButtonItem) {
-        guard let photo = self.dataSource.photo(at: self.currentPhotoIndex) else {
-            return
-        }
+        guard let photo = self.dataSource.photo(at: self.currentPhotoIndex) else { return }
         
         if self.handleActionButtonTapped(photo: photo) {
             return
@@ -659,15 +645,11 @@ import FLAnimatedImage_tvOS
             anyRepresentation = image
         }
         
-        guard let uAnyRepresentation = anyRepresentation else {
-            return
-        }
+        guard let uAnyRepresentation = anyRepresentation else { return }
         
         let activityViewController = UIActivityViewController(activityItems: [uAnyRepresentation], applicationActivities: nil)
         activityViewController.completionWithItemsHandler = { [weak self] (activityType, completed, returnedItems, activityError) in
-            guard let `self` = self else {
-                return
-            }
+            guard let `self` = self else { return }
             
             if completed, let activityType = activityType {
                 self.actionCompleted(activityType: activityType, for: photo)
@@ -691,9 +673,7 @@ import FLAnimatedImage_tvOS
         let indexes = startIndex...(startIndex + numberOfPhotosToLoad)
         
         for index in indexes {
-            guard let photo = self.dataSource.photo(at: index) else {
-                return
-            }
+            guard let photo = self.dataSource.photo(at: index) else { return }
             
             if photo.ax_loadingState == .notLoaded || photo.ax_loadingState == .loadingCancelled {
                 photo.ax_loadingState = .loading
@@ -709,9 +689,7 @@ import FLAnimatedImage_tvOS
         
         weak var weakSelf = self
         func reduceMemory(for photo: AXPhotoProtocol) {
-            guard let `self` = weakSelf else {
-                return
-            }
+            guard let `self` = weakSelf else { return }
             
             if photo.ax_loadingState == .loading {
                 self.networkIntegration.cancelLoad(for: photo)
@@ -735,9 +713,7 @@ import FLAnimatedImage_tvOS
     
     // MARK: - Reuse / Factory
     fileprivate func makePhotoViewController(for pageIndex: Int) -> AXPhotoViewController? {
-        guard let photo = self.dataSource.photo(at: pageIndex) else {
-            return nil
-        }
+        guard let photo = self.dataSource.photo(at: pageIndex) else { return nil }
         
         var photoViewController: AXPhotoViewController
         
@@ -745,9 +721,7 @@ import FLAnimatedImage_tvOS
             photoViewController = self.recycledViewControllers.removeLast()
             photoViewController.prepareForReuse()
         } else {
-            guard let loadingView = self.makeLoadingView(for: pageIndex) else {
-                return nil
-            }
+            guard let loadingView = self.makeLoadingView(for: pageIndex) else { return nil }
             
             photoViewController = AXPhotoViewController(loadingView: loadingView, notificationCenter: self.notificationCenter)
             photoViewController.addLifecycleObserver(self)
@@ -782,7 +756,7 @@ import FLAnimatedImage_tvOS
             return
         }
         
-        if let index = self.orderedViewControllers.index(of: photoViewController) {
+        if let index = self.orderedViewControllers.firstIndex(of: photoViewController) {
             self.orderedViewControllers.remove(at: index)
         }
         
@@ -801,9 +775,7 @@ import FLAnimatedImage_tvOS
     }
     
     fileprivate func lifecycleContextDidUpdate(object: Any?, change: [NSKeyValueChangeKey : Any]?) {
-        guard let photoViewController = object as? AXPhotoViewController else {
-            return
-        }
+        guard let photoViewController = object as? AXPhotoViewController else { return }
         
         if change?[.newKey] is NSNull {
             self.recyclePhotoViewController(photoViewController)
@@ -811,9 +783,7 @@ import FLAnimatedImage_tvOS
     }
     
     fileprivate func contentOffsetContextDidUpdate(object: Any?, change: [NSKeyValueChangeKey : Any]?) {
-        guard let scrollView = object as? UIScrollView, !self.isSizeTransitioning else {
-            return
-        }
+        guard let scrollView = object as? UIScrollView, !self.isSizeTransitioning else { return }
         
         var percent: CGFloat
         if self.pagingConfig.navigationOrientation == .horizontal {
@@ -829,15 +799,34 @@ import FLAnimatedImage_tvOS
             horizontalSwipeDirection = .left
         }
         
-        let swipePercent = (horizontalSwipeDirection == .left) ? (1 - abs(percent)) : abs(percent)
+        let layoutDirection: UIUserInterfaceLayoutDirection
+        if #available(iOS 9.0, tvOS 9.0, *) {
+            layoutDirection = UIView.userInterfaceLayoutDirection(for: self.pageViewController.view.semanticContentAttribute)
+        } else {
+            layoutDirection = .leftToRight
+        }
+        
+        let swipePercent: CGFloat
+        if horizontalSwipeDirection == .left {
+            if layoutDirection == .leftToRight {
+                swipePercent = 1 - abs(percent)
+            } else {
+                swipePercent = abs(percent)
+            }
+        } else {
+            if layoutDirection == .leftToRight {
+                swipePercent = abs(percent)
+            } else {
+                swipePercent = 1 - abs(percent)
+            }
+        }
+        
         var lowIndex: Int = NSNotFound
         var highIndex: Int = NSNotFound
         
         let viewControllers = self.computeVisibleViewControllers(in: scrollView)
         if horizontalSwipeDirection == .left {
-            guard let viewController = viewControllers.first else {
-                return
-            }
+            guard let viewController = viewControllers.first else { return }
             
             if viewControllers.count > 1 {
                 lowIndex = viewController.pageIndex
@@ -848,9 +837,7 @@ import FLAnimatedImage_tvOS
                 highIndex = viewController.pageIndex
             }
         } else if horizontalSwipeDirection == .right {
-            guard let viewController = viewControllers.last else {
-                return
-            }
+            guard let viewController = viewControllers.last else { return }
             
             if viewControllers.count > 1 {
                 highIndex = viewController.pageIndex
@@ -913,18 +900,12 @@ import FLAnimatedImage_tvOS
     
     // MARK: - UIPageViewControllerDataSource
     public func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-        guard let viewController = pendingViewControllers.first as? AXPhotoViewController else {
-            return
-        }
-        
+        guard let viewController = pendingViewControllers.first as? AXPhotoViewController else { return }
         self.loadPhotos(at: viewController.pageIndex)
     }
     
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        guard let viewController = pageViewController.viewControllers?.first as? AXPhotoViewController else {
-            return
-        }
-        
+        guard let viewController = pageViewController.viewControllers?.first as? AXPhotoViewController else { return }
         self.reduceMemoryForPhotos(at: viewController.pageIndex)
     }
     
@@ -947,19 +928,13 @@ import FLAnimatedImage_tvOS
     }
     
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAt index: Int) -> UIViewController? {
-        guard index >= 0 && self.dataSource.numberOfPhotos > index else {
-            return nil
-        }
-        
+        guard index >= 0 && self.dataSource.numberOfPhotos > index else { return nil }
         return self.makePhotoViewController(for: index)
     }
     
     // MARK: - AXPhotoViewControllerDelegate
     public func photoViewController(_ photoViewController: AXPhotoViewController, retryDownloadFor photo: AXPhotoProtocol) {
-        guard photo.ax_loadingState != .loading && photo.ax_loadingState != .loaded else {
-            return
-        }
-        
+        guard photo.ax_loadingState != .loading && photo.ax_loadingState != .loaded else { return }
         photo.ax_error = nil
         photo.ax_loadingState = .loading
         self.networkIntegration.loadPhoto(photo)
@@ -969,11 +944,7 @@ import FLAnimatedImage_tvOS
                                     maximumZoomScaleForPhotoAt index: Int,
                                     minimumZoomScale: CGFloat,
                                     imageSize: CGSize) -> CGFloat {
-        
-        guard let photo = self.dataSource.photo(at: index) else {
-            return .leastNormalMagnitude
-        }
-        
+        guard let photo = self.dataSource.photo(at: index) else { return .leastNormalMagnitude }
         return self.maximumZoomScale(for: photo, minimumZoomScale: minimumZoomScale, imageSize: imageSize)
     }
     
@@ -1046,6 +1017,7 @@ import FLAnimatedImage_tvOS
                                                     imageSize: imageSize) ?? .leastNormalMagnitude
     }
     
+    #if os(iOS)
     /// Called when the action button is tapped for a photo. If you override this and fail to call super, the corresponding
     /// delegate method **will not be called!**
     ///
@@ -1071,9 +1043,10 @@ import FLAnimatedImage_tvOS
     ///   - photo: The related `AXPhoto`.
     /// - Note: This is only called for the default action.
     @objc(actionCompletedWithActivityType:forPhoto:)
-    open func actionCompleted(activityType: UIActivityType, for photo: AXPhotoProtocol) {
+    open func actionCompleted(activityType: UIActivity.ActivityType, for photo: AXPhotoProtocol) {
         self.delegate?.photosViewController?(self, actionCompletedWith: activityType, for: photo)
     }
+    #endif
     
     // MARK: - AXNetworkIntegrationDelegate
     public func networkIntegration(_ networkIntegration: AXNetworkIntegrationProtocol, loadDidFinishWith photo: AXPhotoProtocol) {
@@ -1288,6 +1261,7 @@ fileprivate extension UIScrollView {
                                        minimumZoomScale: CGFloat,
                                        imageSize: CGSize) -> CGFloat
     
+    #if os(iOS)
     /// Called when the action button is tapped for a photo. If no implementation is provided, will fall back to default action.
     ///
     /// - Parameters:
@@ -1305,8 +1279,9 @@ fileprivate extension UIScrollView {
     /// - Note: This is only called for the default action.
     @objc(photosViewController:actionCompletedWithActivityType:forPhoto:)
     optional func photosViewController(_ photosViewController: AXPhotosViewController, 
-                                       actionCompletedWith activityType: UIActivityType, 
+                                       actionCompletedWith activityType: UIActivity.ActivityType, 
                                        for photo: AXPhotoProtocol)
+    #endif
     
     /// Called just before the `AXPhotosViewController` begins its dismissal
     ///

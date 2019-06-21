@@ -71,7 +71,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         if let from = from as? AXPhotosViewController {
             photosViewController = from
         } else {
-            guard let childViewController = from.childViewControllers.filter({ $0 is AXPhotosViewController }).first as? AXPhotosViewController else {
+            guard let childViewController = from.children.filter({ $0 is AXPhotosViewController }).first as? AXPhotosViewController else {
                 assertionFailure(
                     """
                     Could not find AXPhotosViewController in container's children. \
@@ -152,9 +152,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         
         var offscreenImageViewCenter: CGPoint?
         let scaleAnimations = { [weak self] () in
-            guard let `self` = self else {
-                return
-            }
+            guard let `self` = self else { return }
             
             if self.canPerformContextualDismissal() {
                 let endingView = self.transitionInfo.endingView!
@@ -173,9 +171,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         }
         
         let scaleCompletion = { [weak self] (_ finished: Bool) in
-            guard let `self` = self else {
-                return
-            }
+            guard let `self` = self else { return }
             
             self.delegate?.transitionAnimator(self, didCompleteDismissalWith: imageViewContainer.imageView)
             
@@ -208,7 +204,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
             self?.fadeView = nil
         }
         
-        var scaleAnimationOptions: UIViewAnimationOptions
+        var scaleAnimationOptions: UIView.AnimationOptions
         var scaleInitialSpringVelocity: CGFloat
         
         if self.canPerformContextualDismissal() {
@@ -295,7 +291,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         if let from = from as? AXPhotosViewController {
             photosViewController = from
         } else {
-            guard let childViewController = from.childViewControllers.filter({ $0 is AXPhotosViewController }).first as? AXPhotosViewController else {
+            guard let childViewController = from.children.filter({ $0 is AXPhotosViewController }).first as? AXPhotosViewController else {
                 assertionFailure(
                     """
                     Could not find AXPhotosViewController in container's children. \
@@ -399,7 +395,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         if let from = from as? AXPhotosViewController {
             photosViewController = from
         } else {
-            guard let childViewController = from.childViewControllers.filter({ $0 is AXPhotosViewController }).first as? AXPhotosViewController else {
+            guard let childViewController = from.children.filter({ $0 is AXPhotosViewController }).first as? AXPhotosViewController else {
                 assertionFailure("Could not find AXPhotosViewController in container's children.")
                 return
             }
@@ -414,10 +410,8 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         
         let overlayView = photosViewController.overlayView
         let animations = { [weak self] () in
-            guard let `self` = self else {
-                return
-            }
-            
+            guard let `self` = self else { return }
+
             imageView.center.y = self.imageViewInitialCenter.y
             overlayView.topStackContainer.frame.origin.y = self.topStackContainerInitialOriginY
             overlayView.bottomStackContainer.frame.origin.y = self.bottomStackContainerInitialOriginY
@@ -426,9 +420,7 @@ class AXPhotosDismissalAnimator: AXPhotosTransitionAnimator, UIViewControllerInt
         }
         
         let completion = { [weak self] (_ finished: Bool) in
-            guard let `self` = self else {
-                return
-            }
+            guard let `self` = self else { return }
             
             if self.canPerformContextualDismissal() {
                 guard let referenceView = self.transitionInfo.endingView else {

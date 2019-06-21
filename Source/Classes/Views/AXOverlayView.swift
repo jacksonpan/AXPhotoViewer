@@ -48,7 +48,7 @@ import UIKit
     }
     
     /// The title text attributes inherited by the `title`.
-    @objc public var titleTextAttributes: [NSAttributedStringKey: Any]? {
+    @objc public var titleTextAttributes: [NSAttributedString.Key: Any]? {
         didSet {
             self.updateTitleBarButtonItem()
         }
@@ -121,7 +121,7 @@ import UIKit
                 return
             }
             
-            let index = self.bottomStackContainer.subviews.index(of: oldCaptionView)
+            let index = self.bottomStackContainer.subviews.firstIndex(of: oldCaptionView)
             oldCaptionView.removeFromSuperview()
             self.bottomStackContainer.insertSubview(captionView, at: index ?? 0)
             self.setNeedsLayout()
@@ -183,7 +183,7 @@ import UIKit
             self.bottomStackContainer.addSubview(captionView)
         }
         
-        NotificationCenter.default.addObserver(forName: .UIContentSizeCategoryDidChange, object: nil, queue: .main) { [weak self] (note) in
+        NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: .main) { [weak self] (note) in
             self?.setNeedsLayout()
         }
     }
@@ -303,10 +303,7 @@ import UIKit
         
         let size = self.bottomStackContainer.sizeThatFits(self.frame.size)
         let animations = { [weak self] in
-            guard let `self` = self else {
-                return
-            }
-            
+            guard let `self` = self else { return }
             self.bottomStackContainer.frame = CGRect(origin: CGPoint(x: 0, y: self.frame.size.height - size.height), size: size)
             self.bottomStackContainer.setNeedsLayout()
             self.bottomStackContainer.layoutIfNeeded()
@@ -383,7 +380,7 @@ import UIKit
     }
     
     func updateTitleBarButtonItem() {
-        func defaultAttributes() -> [NSAttributedStringKey: Any] {
+        func defaultAttributes() -> [NSAttributedString.Key: Any] {
             let pointSize: CGFloat = 17.0
             var font: UIFont
             if #available(iOS 8.2, *) {
@@ -393,8 +390,8 @@ import UIKit
             }
             
             return [
-                NSAttributedStringKey.font: font,
-                NSAttributedStringKey.foregroundColor: UIColor.white
+                NSAttributedString.Key.font: font,
+                NSAttributedString.Key.foregroundColor: UIColor.white
             ]
         }
         
@@ -408,10 +405,7 @@ import UIKit
         }
         
         if let attributedText = attributedText {
-            guard let titleBarButtonItemLabel = self.titleBarButtonItem.customView as? UILabel else {
-                return
-            }
-            
+            guard let titleBarButtonItemLabel = self.titleBarButtonItem.customView as? UILabel else { return }
             if titleBarButtonItemLabel.attributedText != attributedText {
                 titleBarButtonItemLabel.attributedText = attributedText
                 titleBarButtonItemLabel.sizeToFit()
